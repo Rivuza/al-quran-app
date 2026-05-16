@@ -217,13 +217,66 @@ const translations: Record<string, Record<number, string[]>> = {
   },
   id: {
     1: [
-      'Dengan nama Allah Yang Maha Pengasih lagi Maha Penyayang.',
-      'Segala puji bagi Allah, Tuhan seluruh alam.',
-      'Yang Maha Pengasih lagi Maha Penyayang.',
-      'Yang menguasai Hari Pembalasan.',
-      'Hanya kepada Engkau kami menyembah dan hanya kepada Engkau kami meminta pertolongan.',
-      'Tunjukilah kami jalan yang lurus.',
-      'Jalan orang-orang yang telah Engkau beri nikmat kepadanya; bukan jalan yang mereka情绪 etc. '
+      'Dengan nama Allah Yang Maha Pengasih, Maha Penyayang.',
+      'Segala puji bagi Allah, Tuhan seluruh alam,',
+      'Yang Maha Pengasih, Maha Penyayang,',
+      'Pemilik hari pembalasan.',
+      'Hanya kepada Engkaulah kami menyembah dan hanya kepada Engkaulah kami mohon pertolongan.',
+      'Tunjukilah kami jalan yang lurus,',
+      '(yaitu) jalan orang-orang yang telah Engkau beri nikmat kepadanya; bukan (jalan) mereka yang dimurkai, dan bukan (pula jalan) mereka yang sesat.'
+    ],
+    112: [
+      'Katakanlah (Muhammad), "Dialah Allah, Yang Maha Esa.',
+      'Allah tempat meminta segala sesuatu.',
+      '(Allah) tidak beranak dan tidak pula diperanakkan.',
+      'Dan tidak ada sesuatu yang setara dengan Dia."'
+    ],
+    113: [
+      'Katakanlah, "Aku berlindung kepada Tuhan yang menguasai subuh (fajar),',
+      'dari kejahatan (makhluk yang) Dia ciptakan,',
+      'dan dari kejahatan malam apabila telah gelap gulita,',
+      'dan dari kejahatan (perempuan-perempuan) penyihir yang meniup pada buhul-buhul (talinya),',
+      'dan dari kejahatan orang yang dengki apabila dia dengki."'
+    ],
+    114: [
+      'Katakanlah, "Aku berlindung kepada Tuhannya manusia,',
+      'Raja manusia,',
+      'sembahan manusia,',
+      'dari kejahatan (bisikan) setan yang bersembunyi,',
+      'yang membisikkan (kejahatan) ke dalam dada manusia,',
+      'dari (golongan) jin dan manusia."'
+    ]
+  },
+  ja: {
+    1: [
+      '慈悲あまねく慈愛深きアッラーの御名において。',
+      '万有の主、アッラーに讃えあれ。',
+      '慈悲あまねく慈愛深き御方、',
+      '最後の審きの日の主宰者に。',
+      'わたしたちはあなたにのみ崇め仕え、あなたにのみ御助けを請い願う。',
+      'わたしたちを正しい道に導きたまえ、',
+      'あなたが御恵みを下された人々の道に、あなたの怒りを受けし者、また踏み迷える人々の道ではなく。'
+    ],
+    112: [
+      '言え、「かれはアッラー、唯一なる御方である。',
+      'アッラーは、自存され、',
+      '産みたまわず、産まれたまわない。',
+      'かれに比べ得る、何ものもない。」'
+    ],
+    113: [
+      '言え、「わたしは、黎明の主（アッラー）に御救いを求める。',
+      'かれが創られたものの悪から、',
+      'また、暗闇が迫る時の夜の悪から。',
+      '結び目に息を吹きかける（妖術使いの）女の悪から。',
+      'また、嫉妬する者がねたむ時の悪から。」'
+    ],
+    114: [
+      '言え、「わたしは、人間の主に御救いを求める。',
+      '人間の王、',
+      '人間の神に。',
+      '（人の心に）忍び込んで囁く者の悪から。',
+      'それは人間の胸の中に、囁きかける、',
+      'ジン（幽精）や、人間（の悪魔）である。」'
     ]
   }
 }
