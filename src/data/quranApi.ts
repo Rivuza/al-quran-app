@@ -1,0 +1,402 @@
+import { Surah, SurahDetail, Verse } from '../types'
+
+const API_BASE_URL = 'https://api.alquran.cloud/v1'
+
+interface ApiSurah {
+  number: number
+  englishName: string
+  englishNameTranslation: string
+  numberOfAyahs: number
+  revelationType: 'Meccan' | 'Medinan'
+}
+
+interface ApiVerse {
+  numberInSurah: number
+  text: string
+}
+
+interface ApiSurahResponse {
+  data: {
+    number: number
+    englishName: string
+    englishNameTranslation: string
+    numberOfAyahs: number
+    revelationType: 'Meccan' | 'Medinan'
+    ayahs: ApiVerse[]
+  }
+}
+
+interface ApiJuzResponse {
+  data: {
+    number: number
+    ayahs: ApiVerse[]
+  }[]
+}
+
+const surahMetadata: Record<number, { name: string; revelationType: 'Meccan' | 'Medinan' }> = {
+  1: { name: 'الفاتحة', revelationType: 'Meccan' },
+  2: { name: 'البقرة', revelationType: 'Medinan' },
+  3: { name: 'آل عمران', revelationType: 'Medinan' },
+  4: { name: 'النساء', revelationType: 'Medinan' },
+  5: { name: 'المائدة', revelationType: 'Medinan' },
+  6: { name: 'الأنعام', revelationType: 'Meccan' },
+  7: { name: 'الأعراف', revelationType: 'Meccan' },
+  8: { name: 'الأنفال', revelationType: 'Medinan' },
+  9: { name: 'التوبة', revelationType: 'Medinan' },
+  10: { name: 'يونس', revelationType: 'Meccan' },
+  11: { name: 'هود', revelationType: 'Meccan' },
+  12: { name: 'يوسف', revelationType: 'Meccan' },
+  13: { name: 'الرعد', revelationType: 'Medinan' },
+  14: { name: 'إبراهيم', revelationType: 'Meccan' },
+  15: { name: 'الحجر', revelationType: 'Meccan' },
+  16: { name: 'النحل', revelationType: 'Meccan' },
+  17: { name: 'الإسراء', revelationType: 'Meccan' },
+  18: { name: 'الكهف', revelationType: 'Meccan' },
+  19: { name: 'مريم', revelationType: 'Meccan' },
+  20: { name: 'طه', revelationType: 'Meccan' },
+  21: { name: 'الأنبياء', revelationType: 'Meccan' },
+  22: { name: 'الحج', revelationType: 'Medinan' },
+  23: { name: 'المؤمنون', revelationType: 'Meccan' },
+  24: { name: 'النور', revelationType: 'Medinan' },
+  25: { name: 'الفرقان', revelationType: 'Meccan' },
+  26: { name: 'الشعراء', revelationType: 'Meccan' },
+  27: { name: 'النمل', revelationType: 'Meccan' },
+  28: { name: 'القصص', revelationType: 'Meccan' },
+  29: { name: 'العنكبوت', revelationType: 'Meccan' },
+  30: { name: 'الروم', revelationType: 'Meccan' },
+  31: { name: 'لقمان', revelationType: 'Meccan' },
+  32: { name: 'السجدة', revelationType: 'Meccan' },
+  33: { name: 'الأحزاب', revelationType: 'Medinan' },
+  34: { name: 'سبأ', revelationType: 'Meccan' },
+  35: { name: 'فاطر', revelationType: 'Meccan' },
+  36: { name: 'يس', revelationType: 'Meccan' },
+  37: { name: 'الصافات', revelationType: 'Meccan' },
+  38: { name: 'ص', revelationType: 'Meccan' },
+  39: { name: 'الزمر', revelationType: 'Meccan' },
+  40: { name: 'غافر', revelationType: 'Meccan' },
+  41: { name: 'فصلت', revelationType: 'Meccan' },
+  42: { name: 'الشورى', revelationType: 'Meccan' },
+  43: { name: 'الزخرف', revelationType: 'Meccan' },
+  44: { name: 'الدخان', revelationType: 'Meccan' },
+  45: { name: 'الجاثية', revelationType: 'Meccan' },
+  46: { name: 'الأحقاف', revelationType: 'Meccan' },
+  47: { name: 'محمد', revelationType: 'Medinan' },
+  48: { name: 'الفتح', revelationType: 'Medinan' },
+  49: { name: 'الحجرات', revelationType: 'Medinan' },
+  50: { name: 'ق', revelationType: 'Meccan' },
+  51: { name: 'الذاريات', revelationType: 'Meccan' },
+  52: { name: 'الطور', revelationType: 'Meccan' },
+  53: { name: 'النجم', revelationType: 'Meccan' },
+  54: { name: 'القمر', revelationType: 'Meccan' },
+  55: { name: 'الرحمن', revelationType: 'Medinan' },
+  56: { name: 'الواقعة', revelationType: 'Meccan' },
+  57: { name: 'الحديد', revelationType: 'Medinan' },
+  58: { name: 'المجادلة', revelationType: 'Medinan' },
+  59: { name: 'الحشر', revelationType: 'Medinan' },
+  60: { name: 'الممتحنة', revelationType: 'Medinan' },
+  61: { name: 'الصف', revelationType: 'Medinan' },
+  62: { name: 'الجمعة', revelationType: 'Medinan' },
+  63: { name: 'المنافقون', revelationType: 'Medinan' },
+  64: { name: 'التغابن', revelationType: 'Medinan' },
+  65: { name: 'الطلاق', revelationType: 'Medinan' },
+  66: { name: 'التحريم', revelationType: 'Medinan' },
+  67: { name: 'الملك', revelationType: 'Meccan' },
+  68: { name: 'القلم', revelationType: 'Meccan' },
+  69: { name: 'الحاقة', revelationType: 'Meccan' },
+  70: { name: 'المعارج', revelationType: 'Meccan' },
+  71: { name: 'نوح', revelationType: 'Meccan' },
+  72: { name: 'الجن', revelationType: 'Meccan' },
+  73: { name: 'المزمل', revelationType: 'Meccan' },
+  74: { name: 'المدثر', revelationType: 'Meccan' },
+  75: { name: 'القيامة', revelationType: 'Meccan' },
+  76: { name: 'الإنسان', revelationType: 'Medinan' },
+  77: { name: 'المرسلات', revelationType: 'Meccan' },
+  78: { name: 'النبأ', revelationType: 'Meccan' },
+  79: { name: 'النازعات', revelationType: 'Meccan' },
+  80: { name: 'عبس', revelationType: 'Meccan' },
+  81: { name: 'التكوير', revelationType: 'Meccan' },
+  82: { name: 'الانفطار', revelationType: 'Meccan' },
+  83: { name: 'المطففين', revelationType: 'Meccan' },
+  84: { name: 'الانشقاق', revelationType: 'Meccan' },
+  85: { name: 'البروج', revelationType: 'Meccan' },
+  86: { name: 'الطارق', revelationType: 'Meccan' },
+  87: { name: 'الأعلى', revelationType: 'Meccan' },
+  88: { name: 'الغاشية', revelationType: 'Meccan' },
+  89: { name: 'الفجر', revelationType: 'Meccan' },
+  90: { name: 'البلد', revelationType: 'Meccan' },
+  91: { name: 'الشمس', revelationType: 'Meccan' },
+  92: { name: 'الليل', revelationType: 'Meccan' },
+  93: { name: 'الضحى', revelationType: 'Meccan' },
+  94: { name: 'الشرح', revelationType: 'Meccan' },
+  95: { name: 'التين', revelationType: 'Meccan' },
+  96: { name: 'العلق', revelationType: 'Meccan' },
+  97: { name: 'القدر', revelationType: 'Meccan' },
+  98: { name: 'البينة', revelationType: 'Medinan' },
+  99: { name: 'الزلزلة', revelationType: 'Medinan' },
+  100: { name: 'العاديات', revelationType: 'Meccan' },
+  101: { name: 'القارعة', revelationType: 'Meccan' },
+  102: { name: 'التكاثر', revelationType: 'Meccan' },
+  103: { name: 'العصر', revelationType: 'Meccan' },
+  104: { name: 'الهمزة', revelationType: 'Meccan' },
+  105: { name: 'الفيل', revelationType: 'Meccan' },
+  106: { name: 'قريش', revelationType: 'Meccan' },
+  107: { name: 'الماعون', revelationType: 'Meccan' },
+  108: { name: 'الكوثر', revelationType: 'Meccan' },
+  109: { name: 'الكافرون', revelationType: 'Meccan' },
+  110: { name: 'النصر', revelationType: 'Medinan' },
+  111: { name: 'المسد', revelationType: 'Meccan' },
+  112: { name: 'الإخلاص', revelationType: 'Meccan' },
+  113: { name: 'الفلق', revelationType: 'Meccan' },
+  114: { name: 'الناس', revelationType: 'Meccan' }
+}
+
+const englishNames: Record<number, string> = {
+  1: 'Al-Fatihah', 2: 'Al-Baqarah', 3: 'Ali Imran', 4: 'An-Nisa', 5: "Al-Ma'idah",
+  6: 'Al-Anam', 7: "Al-A'raf", 8: 'Al-Anfal', 9: 'At-Tawbah', 10: 'Yunus',
+  11: 'Hud', 12: 'Yusuf', 13: "Ar-Ra'd", 14: 'Ibrahim', 15: 'Al-Hijr',
+  16: 'An-Nahl', 17: "Al-Isra", 18: 'Al-Kahf', 19: 'Maryam', 20: 'Ta-Ha',
+  21: 'Al-Anbiya', 22: 'Al-Hajj', 23: "Al-Mu'minun", 24: 'An-Nur', 25: 'Al-Furqan',
+  26: 'Ash-Shuara', 27: 'An-Naml', 28: 'Al-Qasas', 29: "Al-Ankabut", 30: 'Ar-Rum',
+  31: 'Luqman', 32: 'As-Sajdah', 33: 'Al-Ahzab', 34: 'Saba', 35: 'Fatir',
+  36: 'Ya-Sin', 37: 'As-Saffat', 38: 'Sad', 39: 'Az-Zumar', 40: 'Ghafir',
+  41: 'Fussilat', 42: 'Ash-Shura', 43: 'Az-Zukhruf', 44: 'Ad-Dukhan', 45: 'Al-Jathiyah',
+  46: 'Al-Ahqaf', 47: 'Muhammad', 48: 'Al-Fath', 49: 'Al-Hujurat', 50: 'Qaf',
+  51: 'Adh-Dhariyat', 52: 'At-Tur', 53: 'An-Najm', 54: 'Al-Qamar', 55: 'Ar-Rahman',
+  56: 'Al-Waqiah', 57: 'Al-Hadid', 58: 'Al-Mujadila', 59: 'Al-Hashr', 60: 'Al-Mumtahanah',
+  61: 'As-Saf', 62: 'Al-Jumuah', 63: 'Al-Munafiqun', 64: 'At-Taghabun', 65: 'At-Talaq',
+  66: 'At-Tahrim', 67: 'Al-Mulk', 68: 'Al-Qalam', 69: 'Al-Haqqah', 70: "Al-Ma'arij",
+  71: 'Nuh', 72: 'Al-Jinn', 73: 'Al-Muzzammil', 74: 'Al-Muddaththir', 75: 'Al-Qiyamah',
+  76: 'Al-Insan', 77: 'Al-Mursalat', 78: 'An-Naba', 79: "An-Nazi'at", 80: 'Abasa',
+  81: 'At-Takwir', 82: 'Al-Infitar', 83: 'Al-Mutaffifin', 84: 'Al-Inshiqaq', 85: 'Al-Buruj',
+  86: 'At-Tariq', 87: 'Al-Ala', 88: 'Al-Ghashiyah', 89: 'Al-Fajr', 90: 'Al-Balad',
+  91: 'Ash-Shams', 92: 'Al-Layl', 93: 'Ad-Duhaa', 94: 'Ash-Sharh', 95: 'At-Tin',
+  96: 'Al-Alaq', 97: 'Al-Qadr', 98: 'Al-Bayyinah', 99: 'Az-Zalzalah', 100: "Al-Adiyat",
+  101: 'Al-Qariah', 102: 'At-Takathur', 103: 'Al-Asr', 104: 'Al-Humazah', 105: 'Al-Fil',
+  106: 'Quraysh', 107: "Al-Ma'un", 108: 'Al-Kawthar', 109: 'Al-Kafirun', 110: 'An-Nasr',
+  111: 'Al-Masad', 112: 'Al-Ikhlas', 113: 'Al-Falaq', 114: 'An-Nas'
+}
+
+const englishTranslations: Record<number, string> = {
+  1: 'The Opening', 2: 'The Cow', 3: 'The Family of Imran', 4: 'The Women',
+  5: 'The Table Spread', 6: 'The Cattle', 7: 'The Heights', 8: 'The Spoils of War',
+  9: 'The Repentance', 10: 'Jonah', 11: 'Hud', 12: 'Joseph', 13: 'The Thunder',
+  14: 'Abraham', 15: 'The Rocky Tract', 16: 'The Bee', 17: 'The Night Journey',
+  18: 'The Cave', 19: 'Mary', 20: 'Ta-Ha', 21: 'The Prophets', 22: 'The Pilgrimage',
+  23: 'The Believers', 24: 'The Light', 25: 'The Criterion', 26: 'The Poets',
+  27: 'The Ant', 28: 'The Stories', 29: 'The Spider', 30: 'The Romans',
+  31: 'Luqman', 32: 'The Prostration', 33: 'The Combined Forces', 34: 'Sheba',
+  35: 'Originator', 36: 'Ya Sin', 37: 'Those Who Set The Ranks', 38: 'The Letter Sad',
+  39: 'The Troops', 40: 'The Forgiver', 41: 'Explained in Detail', 42: 'The Consultation',
+  43: 'The Ornaments of Gold', 44: 'The Smoke', 45: 'The Crouching', 46: 'The Wind-Curved Sandhills',
+  47: 'Muhammad', 48: 'The Victory', 49: 'The Rooms', 50: 'The Letter Qaf',
+  51: 'The Winnowing Winds', 52: 'The Mount', 53: 'The Star', 54: 'The Moon',
+  55: 'The Beneficent', 56: 'The Inevitable', 57: 'The Iron', 58: 'The Pleading Woman',
+  59: 'The Exile', 60: 'The Tested Woman', 61: 'The Ranks', 62: 'The Congregation',
+  63: 'The Hypocrites', 64: 'The Mutual Disillusion', 65: 'The Divorce', 66: 'The Prohibition',
+  67: 'The Sovereignty', 68: 'The Pen', 69: 'The Reality', 70: 'The Ascending Stairways',
+  71: 'Noah', 72: 'The Jinn', 73: 'The Enshrouded One', 74: 'The Cloaked One',
+  75: 'The Resurrection', 76: 'The Human', 77: 'The Emissaries', 78: 'The Tidings',
+  79: 'Those Who Drag Forth', 80: 'He Frowned', 81: 'The Overthrowing', 82: 'The Cleaving',
+  83: 'The Defrauding', 84: 'The Sundering', 85: 'The Mansions of Stars', 86: 'The Morning Star',
+  87: 'The Most High', 88: 'The Overwhelming', 89: 'The Dawn', 90: 'The City',
+  91: 'The Sun', 92: 'The Night', 93: 'The Morning Hours', 94: 'The Relief',
+  95: 'The Fig', 96: 'The Clot', 97: 'The Power', 98: 'The Clear Proof',
+  99: 'The Earthquake', 100: 'The Courser', 101: 'The Calamity', 102: 'The Rivalry',
+  103: 'The Declining Day', 104: 'The Traducer', 105: 'The Elephant', 106: 'Quraysh',
+  107: 'The Small Kindnesses', 108: 'The Abundance', 109: 'The Disbelievers', 110: 'The Divine Support',
+  111: 'The Palm Fiber', 112: 'The Sincerity', 113: 'The Daybreak', 114: 'Mankind'
+}
+
+const verseCounts: Record<number, number> = {
+  1: 7, 2: 286, 3: 200, 4: 176, 5: 120, 6: 165, 7: 206, 8: 75, 9: 129, 10: 109,
+  11: 123, 12: 111, 13: 43, 14: 52, 15: 99, 16: 128, 17: 111, 18: 110, 19: 98,
+  20: 135, 21: 112, 22: 78, 23: 118, 24: 64, 25: 77, 26: 227, 27: 93, 28: 88,
+  29: 69, 30: 60, 31: 34, 32: 30, 33: 73, 34: 54, 35: 45, 36: 83, 37: 182,
+  38: 88, 39: 75, 40: 85, 41: 54, 42: 53, 43: 89, 44: 59, 45: 37, 46: 35,
+  47: 38, 48: 29, 49: 18, 50: 45, 51: 60, 52: 49, 53: 62, 54: 55, 55: 78,
+  56: 96, 57: 29, 58: 22, 59: 24, 60: 13, 61: 14, 62: 11, 63: 11, 64: 18,
+  65: 12, 66: 12, 67: 30, 68: 52, 69: 52, 70: 44, 71: 28, 72: 28, 73: 20,
+  74: 56, 75: 40, 76: 31, 77: 50, 78: 40, 79: 46, 80: 42, 81: 29, 82: 19,
+  83: 36, 84: 25, 85: 22, 86: 17, 87: 19, 88: 26, 89: 30, 90: 20, 91: 15,
+  92: 21, 93: 11, 94: 8, 95: 8, 96: 19, 97: 5, 98: 8, 99: 8, 100: 11,
+  101: 11, 102: 8, 103: 3, 104: 9, 105: 5, 106: 4, 107: 7, 108: 3, 109: 6,
+  110: 3, 111: 5, 112: 4, 113: 5, 114: 6
+}
+
+class QuranService {
+  private cache: Map<number, SurahDetail> = new Map()
+  private surahListCache: Surah[] | null = null
+
+  async getAllSurahs(): Promise<Surah[]> {
+    if (this.surahListCache) {
+      return this.surahListCache
+    }
+
+    const surahs: Surah[] = []
+    for (let i = 1; i <= 114; i++) {
+      surahs.push({
+        number: i,
+        name: surahMetadata[i].name,
+        englishName: englishNames[i],
+        englishNameTranslation: englishTranslations[i],
+        numberOfAyahs: verseCounts[i],
+        revelationType: surahMetadata[i].revelationType
+      })
+    }
+
+    this.surahListCache = surahs
+    return surahs
+  }
+
+  async getSurah(surahNumber: number): Promise<Surah | null> {
+    if (surahNumber < 1 || surahNumber > 114) return null
+
+    return {
+      number: surahNumber,
+      name: surahMetadata[surahNumber].name,
+      englishName: englishNames[surahNumber],
+      englishNameTranslation: englishTranslations[surahNumber],
+      numberOfAyahs: verseCounts[surahNumber],
+      revelationType: surahMetadata[surahNumber].revelationType
+    }
+  }
+
+  async getSurahVerses(surahNumber: number): Promise<Verse[]> {
+    if (this.cache.has(surahNumber)) {
+      return this.cache.get(surahNumber)!.verses
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/surah/${surahNumber}`)
+      const data: ApiSurahResponse = await response.json()
+      
+      const verses: Verse[] = data.data.ayahs.map((ayah) => ({
+        numberInSurah: ayah.numberInSurah,
+        text: ayah.text,
+        translation: '',
+        transliteration: ''
+      }))
+
+      const surahDetail: SurahDetail = {
+        number: surahNumber,
+        name: surahMetadata[surahNumber].name,
+        englishName: englishNames[surahNumber],
+        englishNameTranslation: englishTranslations[surahNumber],
+        numberOfAyahs: verseCounts[surahNumber],
+        revelationType: surahMetadata[surahNumber].revelationType,
+        verses
+      }
+
+      this.cache.set(surahNumber, surahDetail)
+      return verses
+    } catch (error) {
+      console.error(`Failed to fetch surah ${surahNumber}:`, error)
+      return []
+    }
+  }
+
+  async getSurahDetail(surahNumber: number): Promise<SurahDetail | null> {
+    if (this.cache.has(surahNumber)) {
+      return this.cache.get(surahNumber)!
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/surah/${surahNumber}/editions/quran-uthmani`)
+      const data = await response.json()
+      
+      if (data.data && data.data.ayahs) {
+        const verses: Verse[] = data.data.ayahs.map((ayah: { numberInSurah: number; text: string }) => ({
+          numberInSurah: ayah.numberInSurah,
+          text: ayah.text,
+          translation: '',
+          transliteration: ''
+        }))
+
+        const surahDetail: SurahDetail = {
+          number: surahNumber,
+          name: surahMetadata[surahNumber].name,
+          englishName: englishNames[surahNumber],
+          englishNameTranslation: englishTranslations[surahNumber],
+          numberOfAyahs: verseCounts[surahNumber],
+          revelationType: surahMetadata[surahNumber].revelationType,
+          verses
+        }
+
+        this.cache.set(surahNumber, surahDetail)
+        return surahDetail
+      }
+      return null
+    } catch (error) {
+      console.error(`Failed to fetch surah detail ${surahNumber}:`, error)
+      return null
+    }
+  }
+
+  async getTranslation(surahNumber: number, verseNumber: number, language: string): Promise<string> {
+    try {
+      const editionMap: Record<string, string> = {
+        en: 'en.sahih',
+        ur: 'ur.ahmedali',
+        id: 'id.indonesian',
+        es: 'es.asad',
+        fr: 'fr.hamidullah',
+        de: 'de.bubenheim'
+      }
+
+      const edition = editionMap[language] || 'en.sahih'
+      const response = await fetch(`${API_BASE_URL}/ayah/${surahNumber}:${verseNumber}/${edition}`)
+      const data = await response.json()
+
+      if (data.data && data.data.text) {
+        return data.data.text
+      }
+      return ''
+    } catch (error) {
+      console.error(`Failed to fetch translation:`, error)
+      return ''
+    }
+  }
+
+  async getFullSurahWithTranslation(surahNumber: number, language: string): Promise<SurahDetail | null> {
+    try {
+      const editionMap: Record<string, string> = {
+        en: 'en.sahih',
+        ur: 'ur.ahmedali',
+        id: 'id.indonesian',
+        es: 'es.asad',
+        fr: 'fr.hamidullah',
+        de: 'de.bubenheim'
+      }
+
+      const edition = editionMap[language] || 'en.sahih'
+      const response = await fetch(`${API_BASE_URL}/surah/${surahNumber}/editions/${edition}`)
+      const data = await response.json()
+
+      if (data.data && data.data.ayahs) {
+        const verses: Verse[] = data.data.ayahs.map((ayah: { numberInSurah: number; text: string; translation?: string }) => ({
+          numberInSurah: ayah.numberInSurah,
+          text: ayah.text,
+          translation: ayah.translation || '',
+          transliteration: ''
+        }))
+
+        return {
+          number: surahNumber,
+          name: surahMetadata[surahNumber].name,
+          englishName: englishNames[surahNumber],
+          englishNameTranslation: englishTranslations[surahNumber],
+          numberOfAyahs: verseCounts[surahNumber],
+          revelationType: surahMetadata[surahNumber].revelationType,
+          verses
+        }
+      }
+      return null
+    } catch (error) {
+      console.error(`Failed to fetch surah with translation:`, error)
+      return null
+    }
+  }
+}
+
+export const quranService = new QuranService()
+export { surahMetadata, englishNames, englishTranslations, verseCounts }

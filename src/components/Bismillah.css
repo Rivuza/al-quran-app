@@ -1,0 +1,38 @@
+.bismillah {
+  text-align: center;
+  padding: 32px 0;
+  margin-bottom: 24px;
+}
+
+.bismillah-text {
+  font-family: 'Amiri Quran', serif;
+  font-size: 32px;
+  color: #1b5e20;
+  direction: rtl;
+  margin-bottom: 12px;
+}
+
+.bismillah-translation {
+  font-size: 16px;
+  color: #757575;
+  font-style: italic;
+  margin-bottom: 24px;
+}
+
+.bismillah-decoration {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.decoration-line {
+  width: 80px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #1b5e20, transparent);
+}
+
+.decoration-ornament {
+  color: #ffd700;
+  font-size: 16px;
+}
