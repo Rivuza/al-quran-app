@@ -1,5 +1,5 @@
 import { Surah } from '../types'
-import { surahs } from '../data/quran'
+import { surahs, getSurahVerses, getTranslation } from '../data/quran'
 
 export function searchSurahs(query: string): Surah[] {
   const lowerQuery = query.toLowerCase()
@@ -11,8 +11,42 @@ export function searchSurahs(query: string): Surah[] {
   )
 }
 
-export function searchVerses(query: string, surahNumber?: number): Array<{surah: number, verse: number, text: string}> {
-  return []
+export function searchVerses(query: string, surahNumber?: number): Array<{surah: number, verse: number, text: string, translation?: string}> {
+  const lowerQuery = query.toLowerCase();
+  const results: Array<{surah: number, verse: number, text: string, translation?: string}> = [];
+
+  const searchInSurah = (sNumber: number) => {
+    const verses = getSurahVerses(sNumber);
+    verses.forEach(v => {
+      const idTranslation = getTranslation(sNumber, v.numberInSurah, 'id');
+      const enTranslation = getTranslation(sNumber, v.numberInSurah, 'en');
+      const jaTranslation = getTranslation(sNumber, v.numberInSurah, 'ja');
+
+      if (
+        v.text.includes(query) ||
+        (idTranslation && idTranslation.toLowerCase().includes(lowerQuery)) ||
+        (enTranslation && enTranslation.toLowerCase().includes(lowerQuery)) ||
+        (jaTranslation && jaTranslation.toLowerCase().includes(lowerQuery))
+      ) {
+        results.push({
+          surah: sNumber,
+          verse: v.numberInSurah,
+          text: v.text,
+          translation: idTranslation || enTranslation || jaTranslation || ''
+        });
+      }
+    });
+  }
+
+  if (surahNumber) {
+     searchInSurah(surahNumber);
+  } else {
+     for(let i=1; i<=114; i++) {
+        searchInSurah(i);
+     }
+  }
+
+  return results;
 }
 
 export function getSuggestions(query: string): string[] {
